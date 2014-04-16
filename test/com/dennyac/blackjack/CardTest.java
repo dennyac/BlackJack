@@ -9,7 +9,7 @@ public class CardTest {
 	@Test
 	public void test() {
 		Card c = new Card(Suit.HEARTS,Rank.FOUR);
-		assertEquals(c.toString(),"[ FOUR of HEARTS ]");
+		assertEquals("[ FOUR of HEARTS ]",c.toString());
 	}
 
 }
