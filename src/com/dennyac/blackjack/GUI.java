@@ -19,7 +19,8 @@ public class GUI {
 
 	public int getMainMenuOption() {
 		out.println("1. New Game");
-		out.println("2. Exit");
+		out.println("2. Get More Chips");
+		out.println("3. Exit");
 		return getInput();
 	}
 
@@ -31,7 +32,12 @@ public class GUI {
 
 
 	public int getBetAmount() {
-		out.println("Enter Bet Amount");
+		out.println("Enter Bet Amount.");
+		return getInput();
+	}
+	
+	public int getChipAmount(){
+		out.println("Enter Chip Amount.");
 		return getInput();
 	}
 

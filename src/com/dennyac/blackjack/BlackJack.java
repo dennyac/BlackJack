@@ -28,12 +28,16 @@ public class BlackJack {
 				newGame();
 				break;
 			case 2:
+				player.addChips(gui.getChipAmount());
+				gui.renderChips(player);
+				break;
+			case 3:
 				gui.exit();
 				break;
 			default:
 				gui.renderValidation("Invalid Option. Please select a valid option.");
 			}
-		} while (menuOption != 2);
+		} while (menuOption != 3);
 
 	}
 
