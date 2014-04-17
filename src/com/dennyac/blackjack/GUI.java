@@ -23,10 +23,14 @@ public class GUI {
 		out.println("3. Exit");
 		return getInput();
 	}
-
-	public int getInGameOptions() {
+	
+	public int getInGameOptions(Player player) {
 		out.println("1. Hit");
 		out.println("2. Stand");
+		if(player.isEligibleSplit()){
+			out.println("3. Split");
+		}
+		
 		return getInput();
 	}
 
@@ -55,7 +59,7 @@ public class GUI {
 		}
 	}
 	
-	public void renderUser(User user){
+	public void render(String user){
 		out.println(user);
 	}
 	

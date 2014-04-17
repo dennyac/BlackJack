@@ -47,11 +47,33 @@ public class Hand {
 		if (getScore() > MAX_VAL)
 			bust = true;
 	}
+	
+	public void removeCard(){
+		reduceScore(cards.get(cards.size()-1));
+		cards.remove(cards.size()-1);
+		if(containsAce(this.cards))
+			aceExists = true;
+		else
+			aceExists = false;
+	}
+	
+	private boolean containsAce(ArrayList<Card> cards){
+		for(Card card: cards){
+			if(card.getRank() == Rank.ACE){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	// Updating the score of your hand.
 	// Invoked when a new card is added.
 	private void updateScore(Card c) {
 		score += c.getValue();
+	}
+	
+	private void reduceScore(Card c){
+		score -=c.getValue();
 	}
 
 	public int getScore() {

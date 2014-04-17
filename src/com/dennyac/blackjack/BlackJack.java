@@ -64,18 +64,37 @@ public class BlackJack {
 				break;
 			}
 		} while (player.getChips() < betAmount || betAmount < 1);
+		
 
 		// Display in-game options till the current game is not over.
 		while (!isGameOver()) {
-			int inGameOption = gui.getInGameOptions();
+			int inGameOption = gui.getInGameOptions(player);
 			switch (inGameOption) {
 			case 1:
 				// Dealer deals an additional card to the player
-				dealer.deal(player);
+				if (player.isSplit() && player.isFirstSplitComplete())
+					dealer.dealSplit(player);
+				else
+					dealer.deal(player);
 				break;
 			case 2:
 				// Dealer hits till his hand value is 17 or greater
-				dealer.autoPlay();
+				if (player.isSplit() && !player.isFirstSplitComplete()) {
+					player.setFirstSplitComplete(true);
+					dealer.dealSplit(player);
+				} else {
+					dealer.autoPlay();
+				}
+				break;
+			case 3:
+				if (!player.isEligibleSplit()) {
+					gui.renderValidation("Invalid Option. Please select a valid option.");
+				} else {
+					player.splitHand();
+					player.removeChips(betAmount);
+					dealer.deal(player);
+
+				}
 				break;
 			default:
 				gui.renderValidation("Invalid Option. Please select a valid option.");
@@ -85,56 +104,100 @@ public class BlackJack {
 
 	// Checks whether the game is over, and decides the winner.
 	private boolean isGameOver() {
+		String winner;
 		boolean gameOver = false;
+		Hand playerHand;
+		
+		
+		if (player.isSplit() && player.isFirstSplitComplete()) {
+			//Considering the second hand of the split
+			playerHand = player.getSplitHand();
+		} else {
+			playerHand = player.getHand();
+		}
 
 		// Conditions for the game to be completed
 		// 1. If the player or dealer goes bust
 		// 2. If the player or dealer gets a blackjack
 		// 3. If the player's hand value is 21
-		// 4. If the dealer has played his hand (After the dealer plays his hand the faceDown flag is set to false)
-		if (player.getHand().isBlackJack() || player.getHand().isBust()
+		// 4. If the dealer has played his hand (After the dealer plays his hand
+		// the faceDown flag is set to false)
+		if (playerHand.isBlackJack() || playerHand.isBust()
 				|| dealer.getHand().isBlackJack() || dealer.getHand().isBust()
-				|| player.getHand().getScore() == Hand.MAX_VAL
+				|| playerHand.getScore() == Hand.MAX_VAL
 				|| !dealer.getHand().isFaceDown()) {
-			gameOver = true;
 
-			//Set the faceDown flag if the game ends before the dealer plays his hand.
-			dealer.getHand().setFaceDown(false);
+			if (!player.isSplit()) {
+				// Set the faceDown flag if the game ends before the dealer plays
+				// his hand.
+				dealer.getHand().setFaceDown(false);
+				gameOver = true;
+			}
+
+			
+			if (player.isSplit()) {
+				if (player.isFirstSplitComplete()) {
+					
+					//Both hands of split have been completed
+					dealer.getHand().setFaceDown(false);
+					gameOver = true;
+					
+					if ((!player.getHand().isBlackJack() && !player.getHand()
+							.isBust())
+							|| (!player.getSplitHand().isBlackJack() && !player
+									.getHand().isBust())) {
+						dealer.autoPlay();
+					}
+				} else {
+					//Setting this flag to denote that the first hand of the split is complete
+					player.setFirstSplitComplete(true);
+				}
+			}
+
+		}
+		
+		//Display the scores of the player and dealer
+		gui.render(dealer.toString());
+		if (player.isSplit()) {
+			gui.render(player.display(player.getHand()));
+			gui.render(player.display(player.getSplitHand()));
+		} else {
+			gui.render(player.display(player.getHand()));	
 		}
 
 		if (gameOver) {
 			// Decide and display the winner of this round.
-			decideWinner();
-		} else {
-			// Render intermediate scores
-			gui.renderUser(dealer);
-			gui.renderUser(player);
-			gui.renderChips(player);
+			if (player.isSplit()) {
+				winner = decideWinner(player.getHand(), dealer.getHand());
+				gui.renderWinner(winner);
+				winner = decideWinner(player.getSplitHand(), dealer.getHand());
+				gui.renderWinner(winner);
+			} else {
+				winner = decideWinner(player.getHand(), dealer.getHand());
+				gui.renderWinner(winner);
+			}
+			
+
 		}
+		gui.renderChips(player);
 		return gameOver;
 	}
 
 	// Decides who wins this round of BlackJack
-	private void decideWinner() {
-		String winner;
-		
-		if (player.getHand().isBust()
-				|| ((dealer.getHand().getScore() > player.getHand().getScore()) && !dealer
-						.getHand().isBust())) {
-			winner = "Dealer";
-		} else if (dealer.getHand().isBust()
-				|| (dealer.getHand().getScore() < player.getHand().getScore())) {
-			winner = "Player";
+	private String decideWinner(Hand playerHand, Hand dealerHand) {
+		if (playerHand.isBust()
+				|| ((dealerHand.getScore() > playerHand.getScore()) && !dealerHand
+						.isBust())) {
+			return "Dealer";
+		} else if (dealerHand.isBust()
+				|| (dealerHand.getScore() < playerHand.getScore())) {
 			player.addChips(betAmount * 2);
+			return "Player";
 		} else {
-			//When both have equal scores
-			winner = "Push";
+			// When both have equal scores
 			player.addChips(betAmount);
+			return "Push";
 		}
-		gui.renderUser(dealer);
-		gui.renderUser(player);
-		gui.renderWinner(winner);
-		gui.renderChips(player);
 	}
 
 	public static void main(String[] args) {
