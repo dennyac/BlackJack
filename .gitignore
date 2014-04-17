@@ -1,6 +1,3 @@
 #Files to ignore
 
 bin/*
-.classpath
-.project
-.settings
